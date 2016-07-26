@@ -1,0 +1,8 @@
+[package]
+name = "linux-video-tools"
+version = "0.1.0"
+authors = ["jamin <jamin@bitlag.net>"]
+
+[dependencies]
+drm-rs = "0.0.13"
+libc = "*"
