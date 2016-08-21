@@ -2,6 +2,7 @@ extern crate libc;
 extern crate drm_rs;
 extern crate linux_video_tools;
 
+use std::env;
 use std::fs::File;
 
 use drm_rs::xf86drm_mode::{
@@ -74,12 +75,10 @@ fn connector_subpixel_str(connector: &Connector) -> &'static str {
     }
 }
 
-/// List connector information related to a DRI device.
-///
-/// FIXME -- should accept device file as parameter.
-
 fn main() {
-    let file = File::open("/dev/dri/card0").unwrap();
+    let path = env::args().nth(1).unwrap_or("/dev/dri/card0".to_owned());
+
+    let file = File::open(path).unwrap();
 
     let resources = Resources::try_from_file(&file).unwrap();
 

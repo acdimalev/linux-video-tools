@@ -1,6 +1,7 @@
 extern crate drm_rs;
 extern crate linux_video_tools;
 
+use std::env;
 use std::fs::File;
 
 use linux_video_tools::{
@@ -10,7 +11,8 @@ use linux_video_tools::{
 
 
 fn main() {
-    let path = "/dev/dri/card0";
+    let path = env::args().nth(1).unwrap_or("/dev/dri/card0".to_owned());
+
     let file = File::open(path).unwrap();
 
     let resources = Resources::try_from_file(&file).unwrap();
