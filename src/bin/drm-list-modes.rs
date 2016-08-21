@@ -26,9 +26,7 @@ fn main() {
 
         println!("Connector {} has modes...", connector_id);
 
-        let modes = connector.modes();
-
-        for mode in modes {
+        for mode in connector.modes() {
             println!("    {}x{} @ {}", mode.hdisplay, mode.vdisplay, mode.vrefresh);
         }
     }
