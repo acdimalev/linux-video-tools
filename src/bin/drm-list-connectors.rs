@@ -32,6 +32,48 @@ use linux_video_tools::{
 };
 
 
+fn connector_type_str(connector: &Connector) -> &'static str {
+    match connector.raw.connector_type as i32 {
+        DRM_MODE_CONNECTOR_UNKNOWN     => "unknown",
+        DRM_MODE_CONNECTOR_VGA         => "vga",
+        DRM_MODE_CONNECTOR_DVII        => "dvi-i",
+        DRM_MODE_CONNECTOR_DVID        => "dvi-d",
+        DRM_MODE_CONNECTOR_DVIA        => "dvi-a",
+        DRM_MODE_CONNECTOR_COMPOSITE   => "composite",
+        DRM_MODE_CONNECTOR_SVIDEO      => "s-video",
+        DRM_MODE_CONNECTOR_LVDS        => "lvds",
+        DRM_MODE_CONNECTOR_COMPONENT   => "component",
+        DRM_MODE_CONNECTOR_9PINDIN     => "9 pin din",
+        DRM_MODE_CONNECTOR_DISPLAYPORT => "displayport",
+        DRM_MODE_CONNECTOR_HDMIA       => "hdmi a",
+        DRM_MODE_CONNECTOR_HDMIB       => "hdmi b",
+        DRM_MODE_CONNECTOR_TV          => "tv",
+        DRM_MODE_CONNECTOR_EDP         => "edp",
+        DRM_MODE_CONNECTOR_VIRTUAL     => "virtual",
+        DRM_MODE_CONNECTOR_DSI         => "dsi",
+        _                              => "-- invalid --",
+    }
+}
+
+fn connector_connection_str(connector: &Connector) -> &'static str {
+    match connector.raw.connection {
+        drmModeConnection::DRM_MODE_CONNECTED         => "connected",
+        drmModeConnection::DRM_MODE_DISCONNECTED      => "disconnected",
+        drmModeConnection::DRM_MODE_UNKNOWNCONNECTION => "unknown",
+    }
+}
+
+fn connector_subpixel_str(connector: &Connector) -> &'static str {
+    match connector.raw.subpixel {
+        drmModeSubPixel::DRM_MODE_SUBPIXEL_UNKNOWN        => "unknown",
+        drmModeSubPixel::DRM_MODE_SUBPIXEL_HORIZONTAL_RGB => "horizontal rgb",
+        drmModeSubPixel::DRM_MODE_SUBPIXEL_HORIZONTAL_BGR => "horizontal bgr",
+        drmModeSubPixel::DRM_MODE_SUBPIXEL_VERTICAL_RGB   => "vertical rgb",
+        drmModeSubPixel::DRM_MODE_SUBPIXEL_VERTICAL_BGR   => "vertical bgr",
+        drmModeSubPixel::DRM_MODE_SUBPIXEL_NONE           => "none",
+    }
+}
+
 /// List connector information related to a DRI device.
 ///
 /// FIXME -- should accept device file as parameter.
@@ -47,56 +89,20 @@ fn main() {
         let connector = Connector::try_from_file_and_id(&file, *connector_id)
             .unwrap();
 
-        println!("  type: {}", match connector.raw.connector_type as i32 {
-            DRM_MODE_CONNECTOR_UNKNOWN     => "unknown",
-            DRM_MODE_CONNECTOR_VGA         => "vga",
-            DRM_MODE_CONNECTOR_DVII        => "dvi-i",
-            DRM_MODE_CONNECTOR_DVID        => "dvi-d",
-            DRM_MODE_CONNECTOR_DVIA        => "dvi-a",
-            DRM_MODE_CONNECTOR_COMPOSITE   => "composite",
-            DRM_MODE_CONNECTOR_SVIDEO      => "s-video",
-            DRM_MODE_CONNECTOR_LVDS        => "lvds",
-            DRM_MODE_CONNECTOR_COMPONENT   => "component",
-            DRM_MODE_CONNECTOR_9PINDIN     => "9 pin din",
-            DRM_MODE_CONNECTOR_DISPLAYPORT => "displayport",
-            DRM_MODE_CONNECTOR_HDMIA       => "hdmi a",
-            DRM_MODE_CONNECTOR_HDMIB       => "hdmi b",
-            DRM_MODE_CONNECTOR_TV          => "tv",
-            DRM_MODE_CONNECTOR_EDP         => "edp",
-            DRM_MODE_CONNECTOR_VIRTUAL     => "virtual",
-            DRM_MODE_CONNECTOR_DSI         => "dsi",
-            _                              => "-- invalid --",
-        });
+        println!("  type: {}", connector_type_str(&connector));
         println!("  ({} modes, {} props, {} encoders)",
             connector.raw.count_modes,
             connector.raw.count_props,
             connector.raw.count_encoders,
         );
-        println!("  status: {}", match connector.raw.connection {
-            drmModeConnection::DRM_MODE_CONNECTED         => "connected",
-            drmModeConnection::DRM_MODE_DISCONNECTED      => "disconnected",
-            drmModeConnection::DRM_MODE_UNKNOWNCONNECTION => "unknown",
-        });
+        println!("  status: {}", connector_connection_str(&connector));
         if connector.connected() {
             println!("    {}x{}mm",
                 connector.raw.mmWidth,
                 connector.raw.mmHeight,
             );
             println!("    current encoder: {}", connector.raw.encoder_id);
-            println!("    subpixel: {}", match connector.raw.subpixel {
-                drmModeSubPixel::DRM_MODE_SUBPIXEL_UNKNOWN
-                    => "unknown",
-                drmModeSubPixel::DRM_MODE_SUBPIXEL_HORIZONTAL_RGB
-                    => "horizontal rgb",
-                drmModeSubPixel::DRM_MODE_SUBPIXEL_HORIZONTAL_BGR
-                    => "horizontal bgr",
-                drmModeSubPixel::DRM_MODE_SUBPIXEL_VERTICAL_RGB
-                    => "vertical rgb",
-                drmModeSubPixel::DRM_MODE_SUBPIXEL_VERTICAL_BGR
-                    => "vertical bgr",
-                drmModeSubPixel::DRM_MODE_SUBPIXEL_NONE
-                    => "none",
-            });
+            println!("    subpixel: {}", connector_subpixel_str(&connector));
         }
     }
 }
