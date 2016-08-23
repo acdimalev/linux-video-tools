@@ -9,10 +9,13 @@ use drm_rs::xf86drm_mode::{
     drmModeConnection,
     drmModeConnector,
     drmModeFreeConnector,
+    drmModeFreeProperty,
     drmModeFreeResources,
     drmModeGetConnector,
+    drmModeGetProperty,
     drmModeGetResources,
     drmModeModeInfo,
+    drmModePropertyRes,
     drmModeRes,
 };
 
@@ -72,11 +75,48 @@ impl<'a> Connector<'a> {
         unsafe { slice::from_raw_parts(self.raw.modes,
             self.raw.count_modes as usize) }
     }
+
+    pub fn property_ids(&self) -> &[u32] {
+        unsafe { slice::from_raw_parts(self.raw.props,
+            self.raw.count_props as usize) }
+    }
+
+    pub fn property_id_value_pairs(&'a self) -> std::iter::Zip<std::slice::Iter<'a, u32>, std::slice::Iter<'a, u64>> {
+        let ids = unsafe { slice::from_raw_parts(self.raw.props,
+            self.raw.count_props as usize) };
+        let values = unsafe { slice::from_raw_parts(self.raw.prop_values,
+            self.raw.count_props as usize) };
+
+        ids.iter().zip(values)
+    }
 }
 
 impl<'a> Drop for Connector<'a> {
     fn drop(&mut self) {
         unsafe { drmModeFreeConnector(self.raw) };
+    }
+}
+
+pub struct Property<'a> {
+    pub raw: &'a mut drmModePropertyRes,
+}
+
+impl<'a> Property<'a> {
+    pub fn try_from_raw_fd_and_id(fd: RawFd, id: u32) -> Option<Self> {
+        match unsafe { drmModeGetProperty(fd, id).as_mut() } {
+            Some(property) => Some(Property{raw: property}),
+            None => None,
+        }
+    }
+
+    pub fn try_from_file_and_id(file: &File, id: u32) -> Option<Self> {
+        Property::try_from_raw_fd_and_id(file.as_raw_fd(), id)
+    }
+}
+
+impl<'a> Drop for Property<'a> {
+    fn drop(&mut self) {
+        unsafe { drmModeFreeProperty(self.raw) };
     }
 }
 
